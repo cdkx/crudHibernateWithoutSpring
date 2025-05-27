@@ -17,6 +17,7 @@ public class UserSessionProvider implements SessionProvider {
         hibernateProperties.setProperty("hibernate.connection.username", Environment.DB_USER);
         hibernateProperties.setProperty("hibernate.connection.password", Environment.DB_PASSWORD);
         hibernateProperties.setProperty("hibernate.connection.isolation", "TRANSACTION_SERIALIZABLE");
+        hibernateProperties.setProperty("hibernate.dialect", Environment.DB_DIALECT);
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
         hibernateProperties.setProperty("hibernate.show_sql", "true");
 

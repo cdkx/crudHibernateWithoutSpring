@@ -7,6 +7,7 @@ import org.hibernate.Transaction;
 import ru.eremin.crudHibernateWithoutSpring.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -15,13 +16,17 @@ public class UserRepository implements Repository<User, Long> {
 
 
     @Override
-    public User findById(Long aLong) {
-        return null;
+    public Optional<User> findById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            return Optional.ofNullable(session.find(User.class, id));
+        }
     }
 
     @Override
     public List<User> findAll() {
-        return List.of();
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("from User", User.class).list();
+        }
     }
 
     @Override
@@ -35,11 +40,30 @@ public class UserRepository implements Repository<User, Long> {
 
     @Override
     public void delete(User user) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.remove(user);
+            transaction.commit();
+        }
+    }
 
+    @Override
+    public void deleteById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            User user = session.find(User.class, id);
+            session.remove(user);
+            transaction.commit();
+        }
     }
 
     @Override
     public User update(User user) {
-        return null;
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.merge(user);
+            transaction.commit();
+        }
+        return user;
     }
 }
