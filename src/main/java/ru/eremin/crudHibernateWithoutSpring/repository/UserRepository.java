@@ -60,9 +60,17 @@ public class UserRepository implements Repository<User, Long> {
     public User update(User user) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
-            session.merge(user);
+            User updatedUser = session.merge(user);
+            transaction.commit();
+            return updatedUser;
+        }
+    }
+
+    public void dropAll() {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.createNativeQuery("delete from users", User.class).executeUpdate();
             transaction.commit();
         }
-        return user;
     }
 }

@@ -1,8 +1,13 @@
 package ru.eremin.crudHibernateWithoutSpring.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.eremin.crudHibernateWithoutSpring.mapper.UserMapper;
 import ru.eremin.crudHibernateWithoutSpring.model.User;
 import ru.eremin.crudHibernateWithoutSpring.model.dto.UserDTO;
@@ -11,96 +16,91 @@ import ru.eremin.crudHibernateWithoutSpring.provider.UserSessionProvider;
 import ru.eremin.crudHibernateWithoutSpring.service.UserService;
 
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-//TODO
-// Для тестирования DAO-слоя написать интеграционные тесты с использованием Testcontainers.
+@Slf4j
+@Testcontainers
 class UserServiceIntegrationTest {
     SessionProvider provider;
-    SessionFactory factory;
-    Repository<User, Long> repository;
+    SessionFactory sessionFactory;
+    UserRepository userRepository;
     UserService userService;
+    String username = "test";
+    String password = "test";
+    User user1;
+    User user2;
+    User user3;
+    Long id1;
+    Long id2;
+    Long id3;
 
+    @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:13.3");
-
-
-    @BeforeAll
-    static void beforeAll() {
-        postgres.start();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        postgres.stop();
-    }
 
     @BeforeEach
     void beforeEach() {
-        String url = postgres.getJdbcUrl();
-        String username = postgres.getUsername();
-        String password = postgres.getPassword();
-        provider = new UserSessionProvider(url, username, password);
-        factory = provider.getSessionFactory();
-        repository = new UserRepository(factory);
-        userService = new UserService(UserMapper.INSTANCE, repository);
+        provider = new UserSessionProvider(postgres.getJdbcUrl(), username, password);
+        sessionFactory = provider.getSessionFactory();
+        userRepository = new UserRepository(sessionFactory);
+        userService = new UserService(UserMapper.INSTANCE, userRepository);
 
-        User user = new User("testname", "testemail", 10);
-        repository.save(user);
+        user1 = new User("testName", "testEmail", 10);
+        user2 = new User("testName2", "testEmai2", 12);
+        user3 = new User("testName3", "testEmai3", 13);
+        userRepository.save(user1);
+        userRepository.save(user2);
+        userRepository.save(user3);
+        id1 = user1.getId();
+        id2 = user2.getId();
+        id3 = user3.getId();
     }
 
     @AfterEach
     void afterEach() {
-
+        userRepository.dropAll();
     }
 
-
     @Test
-    void findById() {
-        /*
-        * Проверьте, что данные успешно извлекаются.
-Проверьте, что извлекаются правильные данные.
-Проверьте, что данные соответствуют фильтрам.
-        * */
+    void shouldGetCorrectUserById() {
+        UserDTO userDTO = userService.findById(id1);
+        assertEquals(id1, userDTO.id());
+        assertEquals("testName", userDTO.name());
+        assertEquals("testEmail", userDTO.email());
+        assertEquals(10, userDTO.age());
     }
 
     @Test
     void shouldGetAllUsers() {
-
-        List<UserDTO> list =  userService.findAll();
-        Assertions.assertEquals(1, list.size());
+        List<UserDTO> list = userService.findAll();
+        assertEquals(3, list.size());
     }
 
     @Test
-    void save() {
-        /*
-        * Проверьте, что данные успешно создаются.
-Проверьте, что соблюдены правила валидации данных.
-Проверьте, что данные сохраняются в соответствии с требованиями.
-* */
-
-
-//        Assertions.assertNotNull(user.getId());
-//        Assertions.assertEquals("testname", user.getName());
-//        Assertions.assertEquals("testemail", user.getEmail());
-//        Assertions.assertEquals(10, user.getAge());
+    void shouldDeleteUserById() {
+        userRepository.deleteById(id1);
+        userRepository.deleteById(id2);
+        userRepository.deleteById(id3);
+        assertEquals(Optional.empty(), userRepository.findById(id1));
+        assertEquals(Optional.empty(), userRepository.findById(id2));
+        assertEquals(Optional.empty(), userRepository.findById(id3));
     }
 
     @Test
-    void delete() {
-    }
+    void shouldUpdateUser() {
+        String nameBeforeUpdate = user1.getName();
+        log.info("name before update {}", nameBeforeUpdate);
 
-    @Test
-    void deleteById() {
-        /* Проверьте, что данные успешно удаляются.
-Проверьте, что данные удаляются в соответствии с требованиями.
-*/
-    }
+        String expected = "newTestName";
+        log.info("expected name before update {}", expected);
 
-    @Test
-    void update() {
-        /*Проверьте, что данные успешно обновляются.
-Проверьте, что соблюдены правила валидации данных.
-Проверьте, что данные обновляются в соответствии с требованиями.
-*/
+        user1.setName(expected);
+        userRepository.update(user1);
+        String actualNameAfterUpdate = user1.getName();
+        log.info("actual name after update {}", actualNameAfterUpdate);
+
+        assertEquals(expected, actualNameAfterUpdate);
     }
 }
