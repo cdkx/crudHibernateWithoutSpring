@@ -1,8 +1,8 @@
 package ru.eremin.crudHibernateWithoutSpring.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.eremin.crudHibernateWithoutSpring.mapper.UserMapper;
+import ru.eremin.crudHibernateWithoutSpring.mapper.AbstractMapper;
 import ru.eremin.crudHibernateWithoutSpring.model.User;
 import ru.eremin.crudHibernateWithoutSpring.model.dto.UserDTO;
 import ru.eremin.crudHibernateWithoutSpring.repository.Repository;
@@ -13,9 +13,11 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UserService {
+    private final AbstractMapper<User, UserDTO> mapper;
     private final Repository<User, Long> repository;
+
 
     public UserDTO findById(Long id) {
         log.info("Find user by id {}", id);
@@ -28,7 +30,7 @@ public class UserService {
             log.error("id {} not found", id);
             throw new IllegalArgumentException("User with id " + id + " not found");
         } else {
-            return UserMapper.INSTANCE.mapToDTO(optionalUser.get());
+            return mapper.toDto(optionalUser.get());
         }
     }
 
@@ -36,10 +38,9 @@ public class UserService {
         log.info("Find all");
         List<User> list = repository.findAll();
         if (list.isEmpty()) {
-            log.error("Users not found");
-            throw new IllegalArgumentException("Users not found");
+            log.info("Users not found");
         }
-        return list.stream().map(UserMapper.INSTANCE::mapToDTO).collect(Collectors.toList());
+        return list.stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
     public void save(String name, String email, int age) {
@@ -47,11 +48,11 @@ public class UserService {
     }
 
     public void delete(UserDTO userDTO) {
-        User user = UserMapper.INSTANCE.mapToUser(userDTO);
+        User user = mapper.toEntity(userDTO);
         repository.delete(user);
     }
 
-    public void delete(long id) {
+    public void deleteById(Long id) {
         log.info("delete user by id {}", id);
         if (id < 0) {
             log.error("user cannot be deleted, id cannot be negative");
@@ -72,7 +73,7 @@ public class UserService {
         }
         User user = optionalUser.get();
         user.setAge(age);
-        return UserMapper.INSTANCE.mapToDTO(repository.update(user));
+        return mapper.toDto(repository.update(user));
     }
 
     public UserDTO updateUserEmail(Long id, String email) {
@@ -83,7 +84,7 @@ public class UserService {
         }
         User user = optionalUser.get();
         user.setEmail(email);
-        return UserMapper.INSTANCE.mapToDTO(repository.update(user));
+        return mapper.toDto(repository.update(user));
     }
 
     private User createUser(String name, String email, int age) {

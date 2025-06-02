@@ -1,6 +1,6 @@
 package ru.eremin.crudHibernateWithoutSpring.repository;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -10,10 +10,9 @@ import java.util.List;
 import java.util.Optional;
 
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UserRepository implements Repository<User, Long> {
     private final SessionFactory sessionFactory;
-
 
     @Override
     public Optional<User> findById(Long id) {

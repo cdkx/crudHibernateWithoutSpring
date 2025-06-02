@@ -1,16 +1,17 @@
 package ru.eremin.crudHibernateWithoutSpring.mapper;
 
-import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import ru.eremin.crudHibernateWithoutSpring.model.User;
 import ru.eremin.crudHibernateWithoutSpring.model.dto.UserDTO;
 
 
-@Mapper
-public interface UserMapper {
+@org.mapstruct.Mapper
+public interface UserMapper extends AbstractMapper<User, UserDTO> {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    UserDTO mapToDTO(User user);
+    @Override
+    User toEntity(UserDTO userDTO);
 
-    User mapToUser(UserDTO userDTO);
+    @Override
+    UserDTO toDto(User user);
 }

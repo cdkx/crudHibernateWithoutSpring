@@ -3,27 +3,40 @@ package ru.eremin.crudHibernateWithoutSpring;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 
+
+import ru.eremin.crudHibernateWithoutSpring.mapper.AbstractMapper;
+import ru.eremin.crudHibernateWithoutSpring.mapper.UserMapper;
 import ru.eremin.crudHibernateWithoutSpring.model.User;
 import ru.eremin.crudHibernateWithoutSpring.model.dto.UserDTO;
-import ru.eremin.crudHibernateWithoutSpring.provider.*;
+import ru.eremin.crudHibernateWithoutSpring.provider.SessionProvider;
+import ru.eremin.crudHibernateWithoutSpring.provider.UserSessionProvider;
 import ru.eremin.crudHibernateWithoutSpring.repository.Repository;
 import ru.eremin.crudHibernateWithoutSpring.repository.UserRepository;
 import ru.eremin.crudHibernateWithoutSpring.service.UserService;
 
 import java.util.Scanner;
 
+import static ru.eremin.crudHibernateWithoutSpring.consts.Environment.*;
+
 
 @Slf4j
 public class Main {
     public static void main(String[] args) {
-        SessionProvider provider = new UserSessionProvider();
+        SessionProvider provider = new UserSessionProvider(DB_URL, DB_USER, DB_PASSWORD);
         log.info("provider created");
+
         SessionFactory factory = provider.getSessionFactory();
         log.info("SessionFactory created");
+
         Repository<User, Long> repository = new UserRepository(factory);
         log.info("UserRepository created");
-        UserService service = new UserService(repository);
+
+        AbstractMapper<User, UserDTO> userMapper = UserMapper.INSTANCE;
+        log.info("UserMapper created");
+
+        UserService service = new UserService(userMapper, repository);
         log.info("UserService created");
+
 
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
@@ -74,7 +87,7 @@ public class Main {
                         System.out.print("Введите ID пользователя для удаления: ");
                         Long deleteId = Long.parseLong(scanner.nextLine());
                         try {
-                            service.delete(deleteId);
+                            service.deleteById(deleteId);
                             System.out.println("пользователь c id " + deleteId + " удален");
                         } catch (IllegalArgumentException e) {
                             System.out.println("Пользователь с id " + deleteId + " не найден");
