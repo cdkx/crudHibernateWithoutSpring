@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Optional;
 
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.*;
 
@@ -163,7 +165,6 @@ class UserServiceTest {
 
     @Test
     void shouldUpdateEmailAndReturnDtoIfUserExists() {
-        // given
         Long id = 1L;
         String newEmail = "new@Mail";
 

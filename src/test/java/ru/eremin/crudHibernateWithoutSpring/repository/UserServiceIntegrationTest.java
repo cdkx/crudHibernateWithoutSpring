@@ -47,6 +47,12 @@ class UserServiceIntegrationTest {
         userRepository = new UserRepository(sessionFactory);
         userService = new UserService(UserMapper.INSTANCE, userRepository);
 
+
+        //TODO
+        // добавить fail тесты
+        // тестируя репозиторий ты проверяешь методы save, dropAll и тд,
+        // ты не должен их использовать в своем тесте для очистки и загрузки данных,
+        // используй отдельные sql скрипты
         user1 = new User("testName", "testEmail", 10);
         user2 = new User("testName2", "testEmai2", 12);
         user3 = new User("testName3", "testEmai3", 13);
